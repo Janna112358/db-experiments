@@ -21,6 +21,7 @@ let getInfo () =
 
         let! gamesInfo =
             selectAsync HydraReader.Read (Shared ctx) {
+                // want this to use the materialized view, table<games.games_with_info> instead
                 for row in table<games.games> do
                     select row
             }
