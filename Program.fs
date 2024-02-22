@@ -1,2 +1,4 @@
-﻿// For more information see https://aka.ms/fsharp-console-apps
-printfn "Hello from F#"
+﻿open Database
+
+printfn "Hello!"
+getInfo () |> Async.RunSynchronously |> Seq.tryHead |> printfn "Output: %A"

@@ -6,6 +6,10 @@
     <RootNamespace>db_experiments</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DbTypes.fs">
+      <Visible>False</Visible>
+    </Compile>
+    <Compile Include="Database.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project=".paket\Paket.Restore.targets" />
