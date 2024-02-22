@@ -1,0 +1,12 @@
+# netcore files
+bin/*
+obj/*
+artifacts/
+
+# paket dependency manager
+.paket/
+paket-files/
+packages
+
+# SQL Hydra
+sqlhydra-npgsql.toml
