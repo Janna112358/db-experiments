@@ -1,8 +1,10 @@
 # netcore files
+tryHydra/bin/*
+tryHydra/obj/*
+tryNpgsql/bin/*
+tryNpgsql/obj/*
 bin/*
 obj/*
-artifacts/
-.fake
 
 # paket dependency manager
 .paket/
