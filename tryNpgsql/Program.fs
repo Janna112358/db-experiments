@@ -29,58 +29,53 @@ let getMViews (conn: Npgsql.NpgsqlConnection) =
 
     materializedViews
 
+// Getting the columns from the information schema with conn.GetSchema("Columns") will do us no good
+// for materialized views, since they are not included in the information schema
+// (no idea why. postgres docs say so)
+
+// so instead, we do it the "hard" way by querying the pg_catalog
 let getColumns (conn: Npgsql.NpgsqlConnection) =
-    let sColumns = conn.GetSchema("Columns")
-
-    sColumns.Rows
-    |> Seq.cast<System.Data.DataRow>
-    |> Seq.map (fun col ->
-        {| TableCatalog = col["TABLE_CATALOG"] :?> string
-           TableSchema = col["TABLE_SCHEMA"] :?> string
-           TableName = col["TABLE_NAME"] :?> string
-           ColumnName = col["COLUMN_NAME"] :?> string
-           ProviderTypeName = col["DATA_TYPE"] :?> string
-           OrdinalPosition = col["ORDINAL_POSITION"] :?> int
-           IsNullable =
-            match col["IS_NULLABLE"] :?> string with
-            | "YES" -> true
-            | _ -> false |})
-    |> Seq.sortBy (fun column -> column.OrdinalPosition)
-
-let getColumns2 (conn: Npgsql.NpgsqlConnection) =
     let sqlQuery =
         """
         SELECT 
-            pg_namespace.nspname AS table_schema, 
+            pg_namespace.nspname AS table_schema,
             pg_class.relname AS table_name, 
-            pg_attribute.attname AS column_name, 
-            pg_attribute.attnum AS ordinal_position
-        FROM pg_catalog.pg_class
-        INNER JOIN pg_catalog.pg_namespace ON pg_class.relnamespace = pg_namespace.oid
-        INNER JOIN pg_catalog.pg_attribute ON pg_class.oid = pg_attribute.attrelid
+            pg_class.relkind, 
+            pg_attribute.attname AS column_name,
+            pg_attribute.attnum AS ordinal_position,
+            pg_type.typname AS data_type,
+            pg_attribute.attnotnull AS not_null
+        FROM pg_class 
+        INNER JOIN pg_namespace on (pg_class.relnamespace = pg_namespace.oid) 
+        INNER JOIN pg_attribute on (pg_class.oid = pg_attribute.attrelid)
+        INNER JOIN pg_type on (pg_attribute.atttypid = pg_type.oid)
         WHERE 
-            pg_attribute.attnum >= 1
+            -- get ordinary tables (r), views (v), and materialized views (m)
+            relkind in ('r', 'v', 'm') AND
+            -- filter out any "weird" columns 
+            pg_attribute.attnum >= 1 AND
+            -- filter out internal schemas
+            pg_namespace.nspname not in ('pg_catalog', 'information_schema')
         ORDER BY 
             table_schema, 
             table_name, 
-            column_name
+            ordinal_position
+        ;
         """
 
     use cmd = new Npgsql.NpgsqlCommand(sqlQuery, conn)
     use rdr = cmd.ExecuteReader()
 
     [ while rdr.Read() do
-          {| TableCatalog = "" //col["TABLE_CATALOG"] :?> string
+          {|
+             // the pg_catalog doesn't give us the database (catalog) name :(
+             // TableCatalog = ""
              TableSchema = rdr.["TABLE_SCHEMA"] :?> string
              TableName = rdr.["TABLE_NAME"] :?> string
              ColumnName = rdr.["COLUMN_NAME"] :?> string
-             ProviderTypeName = "" // col["DATA_TYPE"] :?> string
-             OrdinalPosition = "" // col["ORDINAL_POSITION"] :?> int
-          // IsNullable =
-          //  match col["IS_NULLABLE"] :?> string with
-          //  | "YES" -> true
-          //  | _ -> false
-          |} ]
+             ProviderTypeName = rdr.["DATA_TYPE"] :?> string
+             OrdinalPosition = rdr.["ORDINAL_POSITION"] :?> int16 |> int
+             IsNullable = rdr.["NOT_NULL"] :?> bool |> not |} ]
     |> Set.ofList
 
 [<EntryPoint>]
@@ -95,23 +90,10 @@ let main args =
     let mViewColumns =
         getColumns conn
         |> Seq.filter (fun c ->
-            c.TableCatalog = mViewInfo.Catalog
-            && c.TableSchema = mViewInfo.Schema
-            && c.TableName = mViewInfo.Name)
-
-    // nothing cause the materialized view columns aren't stored in the Information schema
-    // which is apparently where GetSchema("Columns") gets its data from
-    printfn "Attempt 1: materialized view columns?"
-    mViewColumns |> Seq.iter (printfn "%A")
-
-    let mViewColumns2 =
-        getColumns2 conn
-        |> Seq.filter (fun c ->
             // c.TableCatalog = mViewInfo.Catalog &&
             c.TableSchema = mViewInfo.Schema && c.TableName = mViewInfo.Name)
 
-    printfn "Attempt 2: materialized view columns?"
-    mViewColumns2 |> Seq.iter (printfn "%A")
-
+    printfn "\nMaterialized view columns?"
+    mViewColumns |> Seq.iter (printfn "%A")
 
     0
