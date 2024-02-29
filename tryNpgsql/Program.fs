@@ -1,4 +1,7 @@
-﻿let getConnectionString () =
+﻿open Npgsql
+open NpgsqlTypes
+
+let getConnectionString () =
     match System.Environment.GetEnvironmentVariable "CONNSTRING_GAMES_LOCAL" with
     | null -> failwith "Could not find environment variable CONNSTRING_GAMES_LOCAL"
     | con -> con
@@ -34,7 +37,7 @@ let getMViews (conn: Npgsql.NpgsqlConnection) =
 // (no idea why. postgres docs say so)
 
 // so instead, we do it the "hard" way by querying the pg_catalog
-let getColumns (conn: Npgsql.NpgsqlConnection) =
+let getColumns (conn: NpgsqlConnection) =
     let sqlQuery =
         """
         SELECT 
@@ -63,7 +66,7 @@ let getColumns (conn: Npgsql.NpgsqlConnection) =
         ;
         """
 
-    use cmd = new Npgsql.NpgsqlCommand(sqlQuery, conn)
+    use cmd = new NpgsqlCommand(sqlQuery, conn)
     use rdr = cmd.ExecuteReader()
 
     [ while rdr.Read() do
@@ -80,6 +83,10 @@ let getColumns (conn: Npgsql.NpgsqlConnection) =
 
 [<EntryPoint>]
 let main args =
+
+    (nameof NpgsqlDbType.Varchar) |> printfn "Name of varchar: %s"
+
+
     let connString = getConnectionString ()
     use conn = new Npgsql.NpgsqlConnection(connString)
     conn.Open()
@@ -87,13 +94,19 @@ let main args =
     let mViewInfo = getMViews conn |> Seq.head
     printf $"first materialized view: {mViewInfo}\n"
 
+    let allColumns = getColumns conn
+
     let mViewColumns =
-        getColumns conn
+        allColumns
         |> Seq.filter (fun c ->
             // c.TableCatalog = mViewInfo.Catalog &&
             c.TableSchema = mViewInfo.Schema && c.TableName = mViewInfo.Name)
 
-    printfn "\nMaterialized view columns?"
-    mViewColumns |> Seq.iter (printfn "%A")
+    // printfn "\nMaterialized view columns:"
+    // mViewColumns |> Seq.iter (printfn "%A\n")
+
+    printfn "\nAll columns:"
+    allColumns |> Seq.iter (printf "%A\n")
+
 
     0
