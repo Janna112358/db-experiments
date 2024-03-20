@@ -28,11 +28,11 @@ Choose/fill in the following parameters when prompted:
 
 ```shell
 > Enter a database Connection String: Server=localhost;Database=games;Username=<username>;Password=<password>
-> Enter an Output Filename (...): tryHydra/DbTypes.fs
+> Enter an Output Filename (...): DbTypes.fs
 > Enter a Namespace (...): Games.DbTypes
 > Select a use case: Sqlhydra.Query integration (default)
 ```
 
 ## TryNpgsql
 
-Trying to query the metadata on Postgres materialized views with Npgsql (used in the hydra code). 
+Trying to query the metadata on Postgres materialized views with Npgsql (used in the hydra code).
