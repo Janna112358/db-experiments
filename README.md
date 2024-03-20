@@ -8,19 +8,18 @@ Create the local database with:
 
 ```
 psql -d postgres -U [username] -f sql/create_db.sql
-``` 
+```
 
 Set an environment variable named "CONNSTRING_GAMES_LOCAL".
-
 
 ## TryHydra
 
 Project to try out (experimental release of) sqlhydra.
 
-We use SqlHydra to automatically generate a "database types" module `tryHydra/DbTypes.fs` (in the repo). Regenerate the hydra file by running: 
+We use SqlHydra to automatically generate a "database types" module `tryHydra/DbTypes.fs` (in the repo). Regenerate the hydra file by running:
 
 ```shell
-dotnet sqlhydra npgsql --project tryHydra/tryHydra.fsproj
+dotnet sqlhydra npgsql --project tryHydra/TryHydra.fsproj
 ```
 
 The first time you do this, you will be promted for some input parameters. These parameters are then saved in a file called `sqlhydra-npgsql.toml` so you don't have to give the input every time. If you want to change the params, such as which database is being used, you can edit the `.toml` file directly.

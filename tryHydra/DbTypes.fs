@@ -44,6 +44,17 @@ module games =
     let games = SqlHydra.Query.Table.table<games>
 
     [<CLIMutable>]
+    type games_with_info =
+        { [<SqlHydra.ProviderDbType("Varchar")>]
+          name: Option<string>
+          [<SqlHydra.ProviderDbType("Numeric")>]
+          rating: Option<decimal>
+          [<SqlHydra.ProviderDbType("Varchar")>]
+          owner_name: Option<string> }
+
+    let games_with_info = SqlHydra.Query.Table.table<games_with_info>
+
+    [<CLIMutable>]
     type ratings =
         { [<SqlHydra.ProviderDbType("Integer")>]
           id: int
@@ -69,6 +80,19 @@ module games =
 
             member __.ReadIfNotNull() =
                 if __.id.IsNull() then None else Some(__.Read())
+
+        type games_with_infoReader(reader: Npgsql.NpgsqlDataReader, getOrdinal) =
+            member __.name = OptionalColumn(reader, getOrdinal, reader.GetString, "name")
+            member __.rating = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "rating")
+            member __.owner_name = OptionalColumn(reader, getOrdinal, reader.GetString, "owner_name")
+
+            member __.Read() =
+                { games_with_info.name = __.name.Read()
+                  rating = __.rating.Read()
+                  owner_name = __.owner_name.Read() }
+
+            member __.ReadIfNotNull() =
+                if __.name.IsNull() then None else Some(__.Read())
 
         type ratingsReader(reader: Npgsql.NpgsqlDataReader, getOrdinal) =
             member __.id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "id")
@@ -149,10 +173,12 @@ type HydraReader(reader: Npgsql.NpgsqlDataReader) =
         fun col -> dictionary.Item col
         
     let lazygamesgames = lazy (games.Readers.gamesReader (reader, buildGetOrdinal 3))
+    let lazygamesgames_with_info = lazy (games.Readers.games_with_infoReader (reader, buildGetOrdinal 3))
     let lazygamesratings = lazy (games.Readers.ratingsReader (reader, buildGetOrdinal 4))
     let lazypeoplefriends = lazy (people.Readers.friendsReader (reader, buildGetOrdinal 3))
     let lazypeoplegame_owners = lazy (people.Readers.game_ownersReader (reader, buildGetOrdinal 3))
     member __.``games.games`` = lazygamesgames.Value
+    member __.``games.games_with_info`` = lazygamesgames_with_info.Value
     member __.``games.ratings`` = lazygamesratings.Value
     member __.``people.friends`` = lazypeoplefriends.Value
     member __.``people.game_owners`` = lazypeoplegame_owners.Value
@@ -162,6 +188,8 @@ type HydraReader(reader: Npgsql.NpgsqlDataReader) =
         match entity, isOption with
         | "games.games", false -> __.``games.games``.Read >> box
         | "games.games", true -> __.``games.games``.ReadIfNotNull >> box
+        | "games.games_with_info", false -> __.``games.games_with_info``.Read >> box
+        | "games.games_with_info", true -> __.``games.games_with_info``.ReadIfNotNull >> box
         | "games.ratings", false -> __.``games.ratings``.Read >> box
         | "games.ratings", true -> __.``games.ratings``.ReadIfNotNull >> box
         | "people.friends", false -> __.``people.friends``.Read >> box
@@ -201,9 +229,13 @@ type HydraReader(reader: Npgsql.NpgsqlDataReader) =
         else if t = typedefof<System.TimeOnly []> then Some(wrap reader.GetFieldValue<System.TimeOnly []>)
         else if t = typedefof<System.DateTime> then Some(wrap reader.GetDateTime)
         else if t = typedefof<System.DateTime []> then Some(wrap reader.GetFieldValue<System.DateTime []>)
+        else if t = typedefof<System.DateTimeOffset> then Some(wrap reader.GetDateTime)
+        else if t = typedefof<System.DateTimeOffset []> then Some(wrap reader.GetFieldValue<System.DateTimeOffset []>)
         else if t = typedefof<byte []> then Some(wrap reader.GetFieldValue<byte []>)
         else if t = typedefof<char> then Some(wrap reader.GetChar)
         else if t = typedefof<char []> then Some(wrap reader.GetFieldValue<char []>)
+        else if t = typedefof<float> then Some(wrap reader.GetFloat)
+        else if t = typedefof<float []> then Some(wrap reader.GetFieldValue<float []>)
         else None
 
     static member Read(reader: Npgsql.NpgsqlDataReader) = 
