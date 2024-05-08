@@ -1,5 +1,14 @@
 -- created with dbdiagram
 
+CREATE TYPE "games"."rating" AS ENUM (
+  'super',
+  'good',
+  'ok',
+  'meh',
+  'monopoly'
+);
+
+
 CREATE TABLE "people"."friends" (
   "id" int PRIMARY KEY,
   "name" varchar(255) NOT NULL,
@@ -21,7 +30,8 @@ CREATE TABLE "games"."games" (
 CREATE TABLE "games"."ratings" (
   "id" int PRIMARY KEY,
   "game_id" int NOT NULL,
-  "rating" decimal NOT NULL,
+  "geek_rating" decimal NOT NULL,
+  "my_rating" "games"."rating" NOT NULL,
   "date" Date
 );
 

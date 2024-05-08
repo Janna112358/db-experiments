@@ -12,13 +12,13 @@ INSERT INTO games.games (id, name, year) values
     (5, 'splendor', 2014),
     (6, 'patchwork', 2014);
 
-INSERT INTO games.ratings (id, game_id, rating, date) values 
-    (1, 1, 7.0, '2024-02-22'),
-    (2, 2, 7.4, '2024-02-22'),
-    (3, 3, 7.5, '2024-02-22'), 
-    (4, 4, 8.4, '2024-02-22'),
-    (5, 5, 7.4, '2024-02-22'),
-    (6, 6, 7.6, '2024-02-22');
+INSERT INTO games.ratings (id, game_id, geek_rating, my_rating, date) values 
+    (1, 1, 7.0, 'good', '2024-02-22'),
+    (2, 2, 7.4, 'good', '2024-02-22'),
+    (3, 3, 7.5, 'good', '2024-02-22'), 
+    (4, 4, 8.4, 'super', '2024-02-22'),
+    (5, 5, 7.4, 'super', '2024-02-22'),
+    (6, 6, 7.6, 'super', '2024-02-22');
 
 INSERT INTO people.game_owners (id, owner_id, game_id) values 
     (1, 1, 1), 

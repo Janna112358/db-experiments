@@ -1,3 +1,4 @@
+-- DROP DATABASE games;
 CREATE DATABASE games owner postgres;
 
 \connect games; 
