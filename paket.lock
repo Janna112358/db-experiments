@@ -22,7 +22,7 @@ NUGET
       System.Runtime.CompilerServices.Unsafe (>= 6.0) - restriction: || (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
       System.Text.Json (>= 8.0) - restriction: || (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
       System.Threading.Channels (>= 8.0) - restriction: || (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
-    SqlHydra.Query (2.4.0-beta.2)
+    SqlHydra.Query (2.4.1)
       FSharp.Core (>= 6.0.7) - restriction: || (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netstandard2.0))
       FSharp.Core (>= 7.0.200) - restriction: >= net7.0
       SqlKata (>= 2.4) - restriction: >= netstandard2.0
