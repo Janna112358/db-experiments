@@ -48,6 +48,13 @@ module private DataReaderExtensions =
         
 
 module games =
+    type rating =
+        | super = 1
+        | good = 2
+        | ok = 3
+        | meh = 4
+        | monopoly = 5
+
     [<CLIMutable>]
     type games =
         { [<ProviderDbType("Integer")>]
@@ -64,7 +71,7 @@ module games =
         { [<ProviderDbType("Varchar")>]
           name: Option<string>
           [<ProviderDbType("Numeric")>]
-          rating: Option<decimal>
+          geek_rating: Option<decimal>
           [<ProviderDbType("Varchar")>]
           owner_name: Option<string> }
 
@@ -77,9 +84,10 @@ module games =
           [<ProviderDbType("Integer")>]
           game_id: int
           [<ProviderDbType("Numeric")>]
-          rating: decimal
+          geek_rating: decimal
           [<ProviderDbType("Date")>]
-          date: Option<System.DateOnly> }
+          date: Option<System.DateOnly>
+          my_rating: rating }
 
     let ratings = table<ratings>
 
@@ -100,12 +108,12 @@ module games =
 
         type games_with_infoReader(reader: Npgsql.NpgsqlDataReader, getOrdinal) =
             member __.name = OptionColumn(reader, getOrdinal, reader.GetString, "name")
-            member __.rating = OptionColumn(reader, getOrdinal, reader.GetDecimal, "rating")
+            member __.geek_rating = OptionColumn(reader, getOrdinal, reader.GetDecimal, "geek_rating")
             member __.owner_name = OptionColumn(reader, getOrdinal, reader.GetString, "owner_name")
 
             member __.Read() =
                 { name = __.name.Read()
-                  rating = __.rating.Read()
+                  geek_rating = __.geek_rating.Read()
                   owner_name = __.owner_name.Read() }
                 : games_with_info
 
@@ -115,14 +123,16 @@ module games =
         type ratingsReader(reader: Npgsql.NpgsqlDataReader, getOrdinal) =
             member __.id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "id")
             member __.game_id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "game_id")
-            member __.rating = RequiredColumn(reader, getOrdinal, reader.GetDecimal, "rating")
+            member __.geek_rating = RequiredColumn(reader, getOrdinal, reader.GetDecimal, "geek_rating")
             member __.date = OptionColumn(reader, getOrdinal, reader.GetDateOnly, "date")
+            member __.my_rating = RequiredColumn(reader, getOrdinal, reader.GetFieldValue, "my_rating")
 
             member __.Read() =
                 { id = __.id.Read()
                   game_id = __.game_id.Read()
-                  rating = __.rating.Read()
-                  date = __.date.Read() }
+                  geek_rating = __.geek_rating.Read()
+                  date = __.date.Read()
+                  my_rating = __.my_rating.Read() }
                 : ratings
 
             member __.ReadIfNotNull() =
@@ -195,7 +205,7 @@ type HydraReader(reader: Npgsql.NpgsqlDataReader) =
         
     let lazygamesgames = lazy (games.Readers.gamesReader(reader, buildGetOrdinal 3))
     let lazygamesgames_with_info = lazy (games.Readers.games_with_infoReader(reader, buildGetOrdinal 3))
-    let lazygamesratings = lazy (games.Readers.ratingsReader(reader, buildGetOrdinal 4))
+    let lazygamesratings = lazy (games.Readers.ratingsReader(reader, buildGetOrdinal 5))
     let lazypeoplefriends = lazy (people.Readers.friendsReader(reader, buildGetOrdinal 3))
     let lazypeoplegame_owners = lazy (people.Readers.game_ownersReader(reader, buildGetOrdinal 3))
     member __.``games.games`` = lazygamesgames.Value
