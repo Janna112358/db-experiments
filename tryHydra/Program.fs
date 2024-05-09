@@ -1,13 +1,15 @@
 ﻿open Database
+open Npgsql
+open Games.DbTypes
 
-let program () =
-    async {
-        let! gamesInfo = getInfo ()
-        printfn $"Found {Seq.length gamesInfo} entries in the games info materialized view."
+// Option 2 - needed for raw connections
+//NpgsqlConnection.GlobalTypeMapper.MapEnum<games.rating>("games.rating")
 
-        match (Seq.tryHead gamesInfo) with
-        | Some game -> printfn $"The first game has info:\n {game}"
-        | None -> printfn "No game info found"
-    }
+task {
+    let! ratings = getRatings ()
+    printfn $"Found {Seq.length ratings} entries in the games info materialized view."
 
-program () |> Async.RunSynchronously
+    for rating in ratings do
+        printfn $"Rating is {rating}"
+}
+|> _.Wait()
