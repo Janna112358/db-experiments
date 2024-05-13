@@ -3,6 +3,7 @@ module Database
 open Npgsql
 open SqlHydra.Query
 open Games.DbTypes
+open System.Data
 
 let connectionString =
     "User ID=postgres;Password=mysecretpassword;Host=localhost;Database=games;"
@@ -29,15 +30,18 @@ let getRatings () =
         // use conn = new NpgsqlConnection(connectionString)
         // do! conn.OpenAsync()
 
-        use ctx =
-            let compiler = SqlKata.Compilers.PostgresCompiler()
-            new QueryContext(conn, compiler)
+        // use ctx =
+        //     let compiler = SqlKata.Compilers.PostgresCompiler()
+        //     new QueryContext(conn, compiler)
 
-        let! gamesInfo =
-            selectAsync HydraReader.Read (Shared ctx) {
-                for row in table<games.ratings> do
-                    select row
-            }
+        use cmd = new NpgsqlCommand("SELECT * FROM games.ratings", conn)
+        use reader = cmd.ExecuteReader(CommandBehavior.Default)
+        let hReader = HydraReader reader
 
-        return gamesInfo |> Seq.toArray
+        let output = ResizeArray()
+
+        while! reader.ReadAsync() do
+            output.Add(hReader.``games.ratings``.Read())
+
+        return output.ToArray()
     }
