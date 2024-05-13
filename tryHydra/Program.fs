@@ -2,14 +2,28 @@
 open Npgsql
 open Games.DbTypes
 
-// Option 2 - needed for raw connections
-//NpgsqlConnection.GlobalTypeMapper.MapEnum<games.rating>("games.rating")
+task {
+    printfn "\n---- Task 1 ----\n"
+
+    let! gameRatings = getRatings ()
+    printfn $"Found {Seq.length gameRatings} entries in ratings table"
+
+    match (Seq.tryHead gameRatings) with
+    | Some game -> printfn $"The first game has ratings: \n{game}"
+    | None -> printfn "No entries found"
+
+}
+|> _.Wait()
 
 task {
-    let! ratings = getRatings ()
-    printfn $"Found {Seq.length ratings} entries in the games info materialized view."
+    printfn "\n---- Task 2 ----\n"
 
-    for rating in ratings do
-        printfn $"Rating is {rating}"
+    let! gameInfo = getInfo ()
+    printfn $"Found {Seq.length gameInfo} entries in materialized view"
+
+    match (Seq.tryHead gameInfo) with
+    | Some game -> printfn $"The first game has info: \n{game}"
+    | None -> printfn "No entries found"
+
 }
 |> _.Wait()

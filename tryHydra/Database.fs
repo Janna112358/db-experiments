@@ -5,38 +5,50 @@ open SqlHydra.Query
 open Games.DbTypes
 
 let connectionString =
-    "User ID=postgres;Password=mysecretpassword;Host=localhost;Database=games;"
+    match System.Environment.GetEnvironmentVariable "CONNSTRING_GAMES_LOCAL" with
+    | null -> "User ID=postgres;Password=mysecretpassword;Host=localhost;Database=games;"
+    | conFromEnvironment -> conFromEnvironment
 
-let openContext () =
-    let compiler = SqlKata.Compilers.PostgresCompiler()
-    let conn = new NpgsqlConnection(connectionString)
-    conn.Open()
-    new QueryContext(conn, compiler)
+let openContextWithMappings () =
+    task {
+        let dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
+        dataSourceBuilder.MapEnum<games.rating>("games.rating") |> ignore
+        let dataSource = dataSourceBuilder.Build()
+        let compiler = SqlKata.Compilers.PostgresCompiler()
 
-let createConnectionWithMappings () =
-    let dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
-    dataSourceBuilder.MapEnum<games.rating>("games.rating") |> ignore
-    let dataSource = dataSourceBuilder.Build()
-    dataSource
+        let! conn = dataSource.OpenConnectionAsync()
+        let ctx = new QueryContext(conn, compiler)
+        ctx.Logger <- printfn "SQL query: %O"
+        return ctx
+    }
+
 
 let getRatings () =
     task {
-        // Option 1 - use the dataSourceBuilder
-        use datasource = createConnectionWithMappings ()
-        use! conn = datasource.OpenConnectionAsync()
+        let ctx = ContextType.CreateTask openContextWithMappings
 
-        // Option 2 - raw connection + global type mapper
-        // use conn = new NpgsqlConnection(connectionString)
-        // do! conn.OpenAsync()
+        let! ratings =
+            selectTask HydraReader.Read ctx {
+                for rating in games.ratings do
+                    // select rating.geek_rating // works, numeric column
+                    // select rating.my_rating // does not work, enum column
+                    select rating // works, all columns
+            }
 
-        let cmd = new NpgsqlCommand("SELECT * FROM games.ratings", conn)
-        use! reader = cmd.ExecuteReaderAsync()
-        let output = ResizeArray()
+        return ratings
+    }
 
-        while! reader.ReadAsync() do
-            reader.GetOrdinal "my_rating"
-            |> reader.GetFieldValue<games.rating>
-            |> output.Add
+let getInfo () =
+    task {
+        let ctx = ContextType.CreateTask openContextWithMappings
 
-        return output.ToArray()
+        let! info =
+            selectTask HydraReader.Read ctx {
+                for info in games.games_with_info do
+                    // select info.geek_rating // works, numeric column
+                    // select info.my_rating // does not work, enum column
+                    select info // does not work, all columns
+            }
+
+        return info
     }
