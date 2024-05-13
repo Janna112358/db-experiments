@@ -29,14 +29,15 @@ let getRatings () =
         // use conn = new NpgsqlConnection(connectionString)
         // do! conn.OpenAsync()
 
-        let cmd = new NpgsqlCommand("SELECT * FROM games.ratings", conn)
-        use! reader = cmd.ExecuteReaderAsync()
-        let output = ResizeArray()
+        use ctx =
+            let compiler = SqlKata.Compilers.PostgresCompiler()
+            new QueryContext(conn, compiler)
 
-        while! reader.ReadAsync() do
-            reader.GetOrdinal "my_rating"
-            |> reader.GetFieldValue<games.rating>
-            |> output.Add
+        let! gamesInfo =
+            selectAsync HydraReader.Read (Shared ctx) {
+                for row in table<games.ratings> do
+                    select row
+            }
 
-        return output.ToArray()
+        return gamesInfo |> Seq.toArray
     }

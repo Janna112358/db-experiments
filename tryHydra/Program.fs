@@ -10,6 +10,6 @@ task {
     printfn $"Found {Seq.length ratings} entries in the games info materialized view."
 
     for rating in ratings do
-        printfn $"Rating is {rating}"
+        printfn $"Rating is %A{rating}"
 }
 |> _.Wait()
