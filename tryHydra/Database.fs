@@ -4,6 +4,7 @@ open Npgsql
 open SqlHydra.Query
 open Games.DbTypes
 open System.Data
+open System.Threading
 
 let connectionString =
     "User ID=postgres;Password=mysecretpassword;Host=localhost;Database=games;"
@@ -35,7 +36,7 @@ let getRatings () =
         //     new QueryContext(conn, compiler)
 
         use cmd = new NpgsqlCommand("SELECT * FROM games.ratings", conn)
-        use reader = cmd.ExecuteReader(CommandBehavior.Default)
+        use! reader = cmd.ExecuteReaderAsync(CancellationToken.None)
         let hReader = HydraReader reader
 
         let output = ResizeArray()
