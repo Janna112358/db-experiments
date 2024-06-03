@@ -14,7 +14,7 @@ NUGET
       System.Memory (>= 4.5.5) - restriction: || (>= net462) (&& (< net6.0) (>= netstandard2.0))
     Microsoft.NETCore.Platforms (7.0.4) - restriction: || (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard2.0) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
     Microsoft.NETCore.Targets (5.0) - restriction: || (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard2.0) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
-    Npgsql (8.0.2)
+    Npgsql (8.0.3)
       Microsoft.Bcl.HashCode (>= 1.1.1) - restriction: && (>= netstandard2.0) (< netstandard2.1)
       Microsoft.Extensions.Logging.Abstractions (>= 8.0) - restriction: >= netstandard2.0
       System.Collections.Immutable (>= 8.0) - restriction: || (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
@@ -22,7 +22,7 @@ NUGET
       System.Runtime.CompilerServices.Unsafe (>= 6.0) - restriction: || (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
       System.Text.Json (>= 8.0) - restriction: || (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
       System.Threading.Channels (>= 8.0) - restriction: || (&& (< net6.0) (>= netstandard2.1)) (&& (>= netstandard2.0) (< netstandard2.1))
-    SqlHydra.Query (2.4.1)
+    SqlHydra.Query (2.5.1)
       FSharp.Core (>= 6.0.7) - restriction: || (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netstandard2.0))
       FSharp.Core (>= 7.0.200) - restriction: >= net7.0
       SqlKata (>= 2.4) - restriction: >= netstandard2.0
