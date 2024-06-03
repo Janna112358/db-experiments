@@ -9,9 +9,15 @@
       ]
     },
     "sqlhydra.cli": {
-      "version": "2.4.1",
+      "version": "2.5.0",
       "commands": [
         "sqlhydra"
+      ]
+    },
+    "fantomas": {
+      "version": "6.3.4",
+      "commands": [
+        "fantomas"
       ]
     }
   }

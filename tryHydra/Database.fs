@@ -4,26 +4,53 @@ open Npgsql
 open SqlHydra.Query
 open Games.DbTypes
 
-let connectionString =
+let private connectionString =
     match System.Environment.GetEnvironmentVariable "CONNSTRING_GAMES_LOCAL" with
-    | null -> failwith "Could not find local db connection string"
-    | con -> con
+    | null -> "User ID=postgres;Password=mysecretpassword;Host=localhost;Database=games;"
+    | conFromEnvironment -> conFromEnvironment
+
+let private dataSourceWithEnumMappings =
+    let dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
+    dataSourceBuilder.MapEnum<games.rating>("games.rating") |> ignore
+    dataSourceBuilder.Build()
+
+let private compiler = SqlKata.Compilers.PostgresCompiler()
 
 let openContext () =
-    let compiler = SqlKata.Compilers.PostgresCompiler()
-    let conn = new NpgsqlConnection(connectionString)
-    conn.Open()
-    new QueryContext(conn, compiler)
+    task {
+        let! conn = dataSourceWithEnumMappings.OpenConnectionAsync()
+        let ctx = new QueryContext(conn, compiler)
+        ctx.Logger <- printfn "SQL query for debugging: %O"
+        return ctx
+    }
 
-let getInfo () =
-    async {
-        use ctx = openContext ()
 
-        let! gamesInfo =
-            selectAsync HydraReader.Read (Shared ctx) {
-                for row in table<games.games_with_info> do
-                    select row
+let getRatings () =
+    task {
+        let ctx = ContextType.CreateTask openContext
+
+        let! ratings =
+            selectTask HydraReader.Read ctx {
+                for row in games.ratings do
+                    // select row.geek_rating // works, numeric column
+                    // select row.my_rating // does not work, enum column
+                    select row // works, all columns
             }
 
-        return gamesInfo
+        return ratings
+    }
+
+let getInfo () =
+    task {
+        let ctx = ContextType.CreateTask openContext
+
+        let! info =
+            selectTask HydraReader.Read ctx {
+                for row in games.games_with_info do
+                    // select row.geek_rating // works, numeric column
+                    // select row.my_rating // does not work, enum column
+                    select row // works, but missing enum column
+            }
+
+        return info
     }

@@ -13,3 +13,4 @@ packages
 
 # SQL Hydra
 sqlhydra-npgsql.toml
+.fake
