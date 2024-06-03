@@ -4,35 +4,37 @@ open Npgsql
 open SqlHydra.Query
 open Games.DbTypes
 
-let connectionString =
+let private connectionString =
     match System.Environment.GetEnvironmentVariable "CONNSTRING_GAMES_LOCAL" with
     | null -> "User ID=postgres;Password=mysecretpassword;Host=localhost;Database=games;"
     | conFromEnvironment -> conFromEnvironment
 
-let openContextWithMappings () =
-    task {
-        let dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
-        dataSourceBuilder.MapEnum<games.rating>("games.rating") |> ignore
-        let dataSource = dataSourceBuilder.Build()
-        let compiler = SqlKata.Compilers.PostgresCompiler()
+let private dataSourceWithEnumMappings =
+    let dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
+    dataSourceBuilder.MapEnum<games.rating>("games.rating") |> ignore
+    dataSourceBuilder.Build()
 
-        let! conn = dataSource.OpenConnectionAsync()
+let private compiler = SqlKata.Compilers.PostgresCompiler()
+
+let openContext () =
+    task {
+        let! conn = dataSourceWithEnumMappings.OpenConnectionAsync()
         let ctx = new QueryContext(conn, compiler)
-        ctx.Logger <- printfn "SQL query: %O"
+        ctx.Logger <- printfn "SQL query for debugging: %O"
         return ctx
     }
 
 
 let getRatings () =
     task {
-        let ctx = ContextType.CreateTask openContextWithMappings
+        let ctx = ContextType.CreateTask openContext
 
         let! ratings =
             selectTask HydraReader.Read ctx {
-                for rating in games.ratings do
-                    // select rating.geek_rating // works, numeric column
-                    // select rating.my_rating // does not work, enum column
-                    select rating // works, all columns
+                for row in games.ratings do
+                    // select row.geek_rating // works, numeric column
+                    // select row.my_rating // does not work, enum column
+                    select row // works, all columns
             }
 
         return ratings
@@ -40,14 +42,14 @@ let getRatings () =
 
 let getInfo () =
     task {
-        let ctx = ContextType.CreateTask openContextWithMappings
+        let ctx = ContextType.CreateTask openContext
 
         let! info =
             selectTask HydraReader.Read ctx {
-                for info in games.games_with_info do
-                    // select info.geek_rating // works, numeric column
-                    // select info.my_rating // does not work, enum column
-                    select info // does not work, all columns
+                for row in games.games_with_info do
+                    // select row.geek_rating // works, numeric column
+                    // select row.my_rating // does not work, enum column
+                    select row // works, but missing enum column
             }
 
         return info

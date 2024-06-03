@@ -3,7 +3,7 @@ open Npgsql
 open Games.DbTypes
 
 task {
-    printfn "\n---- Task 1 ----\n"
+    printfn "\n---- Task 1: select from table ----\n"
 
     let! gameRatings = getRatings ()
     printfn $"Found {Seq.length gameRatings} entries in ratings table"
@@ -16,7 +16,7 @@ task {
 |> _.Wait()
 
 task {
-    printfn "\n---- Task 2 ----\n"
+    printfn "\n---- Task 2: select from mat. view ----\n"
 
     let! gameInfo = getInfo ()
     printfn $"Found {Seq.length gameInfo} entries in materialized view"

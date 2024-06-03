@@ -14,7 +14,7 @@ Set an environment variable named "CONNSTRING_GAMES_LOCAL".
 
 ## TryHydra
 
-Project to try out (experimental release of) sqlhydra.
+Project to try out (new features of) [sqlhydra](https://github.com/JordanMarr/SqlHydra) with a Postgres database. Specifically, I am interested in using Postgres enum types and materialized views.
 
 We use SqlHydra to automatically generate a "database types" module `tryHydra/DbTypes.fs` (in the repo). Regenerate the hydra file by running:
 
@@ -35,4 +35,4 @@ Choose/fill in the following parameters when prompted:
 
 ## TryNpgsql
 
-Trying to query the metadata on Postgres materialized views with Npgsql (used in the hydra code). 
+Trying to query the metadata on Postgres materialized views with Npgsql (used in the hydra code).
